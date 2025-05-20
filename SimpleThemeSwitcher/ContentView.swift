@@ -7,15 +7,47 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct ThemeSwitcher<Content: View>: View {
+    @ViewBuilder var content: Content
+    @AppStorage("AppTheme") private var appTheme: AppTheme = .systemDefault
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        content
+            .preferredColorScheme(appTheme.colorScheme)
+    }
+}
+
+enum AppTheme: String, CaseIterable {
+    case light = "Light"
+    case dark = "Dark"
+    case systemDefault = "Default"
+    
+    var colorScheme: ColorScheme?  {
+        // nil mean System Default in SwiftUI
+        switch self {
+        case .light: .light
+        case .dark: .dark
+        case .systemDefault: nil
         }
-        .padding()
+    }
+}
+
+struct ContentView: View {
+    @AppStorage("AppTheme") private var appTheme: AppTheme = .systemDefault
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                Picker("", selection: $appTheme) {
+                    ForEach(AppTheme.allCases, id: \.rawValue) { theme in
+                        Text(theme.rawValue)
+                            .tag(theme)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+            .navigationTitle("Theme Switcher")
+        }
     }
 }
 
